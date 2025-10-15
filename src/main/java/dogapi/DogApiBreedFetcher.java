@@ -16,6 +16,8 @@ import java.util.*;
  */
 public class DogApiBreedFetcher implements BreedFetcher {
     private final OkHttpClient client = new OkHttpClient();
+    private static final String BASE_URL = "https://dog.ceo/api/breed/";
+
 
     /**
      * Fetch the list of sub breeds for the given breed from the dog.ceo API.
@@ -24,12 +26,29 @@ public class DogApiBreedFetcher implements BreedFetcher {
      * @throws BreedNotFoundException if the breed does not exist (or if the API call fails for any reason)
      */
     @Override
-    public List<String> getSubBreeds(String breed) {
-        // TODO Task 1: Complete this method based on its provided documentation
-        //      and the documentation for the dog.ceo API. You may find it helpful
-        //      to refer to the examples of using OkHttpClient from the last lab,
-        //      as well as the code for parsing JSON responses.
-        // return statement included so that the starter code can compile and run.
-        return new ArrayList<>();
+    public List<String> getSubBreeds(String breed) throws BreedNotFoundException {
+        final Request request = new Request.Builder()
+                .url(String.format("%s/list", BASE_URL, breed))
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new BreedNotFoundException(breed);
+            }
+            final JSONObject responseBody = new JSONObject(response.body().string());
+            if (!responseBody.getString("status").equals("success")) {
+                throw new BreedNotFoundException(breed);
+            }
+
+            JSONArray messageArray = responseBody.getJSONArray("message");
+            List<String> subBreeds = new ArrayList<>();
+            for (int i = 0; i < messageArray.length(); i++) {
+                subBreeds.add(messageArray.getString(i));
+            }
+            return subBreeds;
+        } catch (BreedNotFoundException e) {
+            throw e;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
