@@ -27,8 +27,9 @@ public class DogApiBreedFetcher implements BreedFetcher {
      */
     @Override
     public List<String> getSubBreeds(String breed) throws BreedNotFoundException {
+        String url = BASE_URL + breed + "/list";
         final Request request = new Request.Builder()
-                .url(String.format("%s/list", BASE_URL, breed))
+                .url(url)
                 .build();
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
